@@ -4,10 +4,11 @@ Functions which support the parsing of transactions from raw formats.
 
 from collections import namedtuple
 import csv
-from datetime import datetime
+from datetime import date, datetime, timedelta
 from decimal import Decimal, InvalidOperation
 import json
 import logging
+from xml.etree import ElementTree
 
 from support_bank.bank import Transaction
 
@@ -24,6 +25,13 @@ _JSON_TO_ACCOUNT_FIELD = 'toAccount'
 _JSON_NARRATIVE_FIELD = 'narrative'
 _JSON_AMOUNT_FIELD = 'amount'
 _JSON_DATE_FORMAT = '%Y-%m-%d'
+
+_XML_NARRATIVE_ELEMENT = 'Description'
+_XML_AMOUNT_ELEMENT = 'Value'
+_XML_PARTIES_ELEMENT = 'Parties'
+_XML_FROM_ELEMENT = 'From'
+_XML_TO_ELEMENT = 'To'
+_XML_DATE_ATTRIBUTE = 'Date'
 
 class FailedTransaction(namedtuple('FailedTransaction', 'error index')):
     """
@@ -42,6 +50,8 @@ def read_transactions_from_file(file):
         return _parse_transactions(_get_rows_from_csv_file(file), _convert_csv_row_to_transaction)
     elif file.endswith('.json'):
         return _parse_transactions(_get_objects_from_json_file(file), _convert_json_object_to_transaction)
+    elif file.endswith('.xml'):
+        return _parse_transactions(_get_elements_from_xml_file(file), _convert_xml_element_to_transaction)
     else:
         raise Exception('Unrecognised file type')
 
@@ -89,6 +99,29 @@ def _convert_json_object_to_transaction(json_object):
         amount=_get_amount_from_string(json_object[_JSON_AMOUNT_FIELD])
     )
 
+# XML parsing helpers
+
+def _get_elements_from_xml_file(file):
+    logging.info(f'Reading XML file: {file}')
+    with open(file, 'r') as xmlfile:
+        return ElementTree.parse(xmlfile).getroot()
+
+def _convert_xml_element_to_transaction(xml_element):
+    logging.debug(f'Converting XML element: {ElementTree.tostring(xml_element)}')
+
+    parties = xml_element.find(_XML_PARTIES_ELEMENT)
+
+    from_account = parties.find(_XML_FROM_ELEMENT).text
+    to_account = parties.find(_XML_TO_ELEMENT).text
+    narrative = xml_element.find(_XML_NARRATIVE_ELEMENT).text
+    amount = _get_amount_from_string(xml_element.find(_XML_AMOUNT_ELEMENT).text)
+    date = _parse_ole_automation_date(xml_element.attrib[_XML_DATE_ATTRIBUTE])
+
+    return Transaction(
+        date=date, from_account=from_account, to_account=to_account, narrative=narrative, amount=amount
+    )
+
+
 # Common parsing helpers
 
 def _get_date_from_string(date_string, format):
@@ -99,3 +132,7 @@ def _get_amount_from_string(amount_string):
         return Decimal(amount_string)
     except InvalidOperation:
         raise Exception(f'Invalid amount: {amount_string}')
+
+def _parse_ole_automation_date(ole_date):
+    base_date = date(1899, 12, 30)
+    return base_date + timedelta(int(ole_date))
