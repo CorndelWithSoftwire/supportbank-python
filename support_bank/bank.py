@@ -45,10 +45,11 @@ class Bank:
         self.accounts = {}
 
     @staticmethod
-    def from_transactions(transactions):
+    def from_transactions(*transaction_lists):
         bank = Bank()
-        for transaction in transactions:
-            bank.add_transaction(transaction)
+        for transaction_list in transaction_lists:
+            for transaction in transaction_list:
+                bank.add_transaction(transaction)
         return bank
 
     def add_transaction(self, transaction):

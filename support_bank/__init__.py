@@ -44,8 +44,9 @@ def list_single_account(bank, account_name):
         print(f'There is no account known in the name of {account_name}')
 
 def main():
-    transactions = read_transactions_from_csv_file('transactions/Transactions2014.csv')
-    bank = Bank.from_transactions(transactions)
+    transactions2014 = read_transactions_from_csv_file('transactions/Transactions2014.csv')
+    transactions2015 = read_transactions_from_csv_file('transactions/DodgyTransactions2015.csv')
+    bank = Bank.from_transactions(transactions2014, transactions2015)
 
     display_banner()
     while True:
