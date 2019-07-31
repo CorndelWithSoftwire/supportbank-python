@@ -3,6 +3,7 @@ Classes relating to a bank and the individual accounts within it.
 """
 
 from collections import namedtuple
+import logging
 from operator import attrgetter
 
 class Transaction(namedtuple('Transaction', 'date from_account to_account narrative amount')):
@@ -53,6 +54,7 @@ class Bank:
         return bank
 
     def add_transaction(self, transaction):
+        logging.debug(f'Adding transaction to bank: {transaction}')
         self._get_or_create_account(transaction.from_account).add_outgoing_transaction(transaction)
         self._get_or_create_account(transaction.to_account).add_incoming_transaction(transaction)
 

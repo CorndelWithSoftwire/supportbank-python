@@ -9,6 +9,9 @@ _build
 .cache
 *.so
 
+# Application logs
+SupportBank.log
+
 # Installer logs
 pip-log.txt
 
