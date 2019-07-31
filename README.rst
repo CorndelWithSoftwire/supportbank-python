@@ -1,6 +1,6 @@
 # SupportBank
 
-Starter project for the SupportBank exercise in Python
+Model solution for the SupportBank exercise in Python
 
 ## Running
 
