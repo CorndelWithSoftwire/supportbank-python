@@ -45,13 +45,9 @@ class Bank:
     def __init__(self):
         self.accounts = {}
 
-    @staticmethod
-    def from_transactions(*transaction_lists):
-        bank = Bank()
-        for transaction_list in transaction_lists:
-            for transaction in transaction_list:
-                bank.add_transaction(transaction)
-        return bank
+    def add_transactions(self, transactions):
+        for transaction in transactions:
+            self.add_transaction(transaction)
 
     def add_transaction(self, transaction):
         logging.debug(f'Adding transaction to bank: {transaction}')
